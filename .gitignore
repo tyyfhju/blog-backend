@@ -1,0 +1,19 @@
+# ---- Build output ----
+target/
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/
+
+# ---- Logs ----
+*.log
+
+# ---- Local configuration: contains real credentials, never commit ----
+src/main/resources/application.yml
+src/main/resources/application-local.yml
+src/main/resources/application-*.yml
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
