@@ -23,6 +23,8 @@ public class AdminArticleController {
     @GetMapping
     public Page<Article> list(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "10") int size) {
+        page = Math.max(0, page);
+        size = Math.max(1, Math.min(size, 100));
         return articleService.listAll(page, size);
     }
 
@@ -35,7 +37,7 @@ public class AdminArticleController {
     public Article create(@RequestBody ArticleCreateRequest request, Authentication auth) {
         String email = (String) auth.getPrincipal();
         Long userId = userService.getUserIdByEmail(email);
-        return articleService.createAndNotify(request, userId);
+        return articleService.create(request, userId);
     }
 
     @PutMapping("/{id}")

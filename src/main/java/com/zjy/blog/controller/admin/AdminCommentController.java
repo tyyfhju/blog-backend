@@ -21,6 +21,8 @@ public class AdminCommentController {
     @GetMapping
     public Page<Comment> list(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "10") int size) {
+        page = Math.max(0, page);
+        size = Math.max(1, Math.min(size, 100));
         return commentRepository.findAll(PageRequest.of(page, size));
     }
 

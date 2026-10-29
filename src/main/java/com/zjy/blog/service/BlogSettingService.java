@@ -13,15 +13,15 @@ public class BlogSettingService {
     private BlogSettingRepository settingRepository;
 
     public BlogSetting getSetting() {
-        return settingRepository.findById(1L).orElse(null);
+        return settingRepository.findTopByOrderByIdAsc().orElse(null);
     }
 
     @Transactional
     public BlogSetting updateSetting(BlogSetting setting) {
-        BlogSetting existing = settingRepository.findById(1L).orElse(null);
+        BlogSetting existing = settingRepository.findTopByOrderByIdAsc().orElse(null);
 
         if (existing == null) {
-            setting.setId(1L);
+            setting.setId(null);
             return settingRepository.save(setting);
         }
 
@@ -44,6 +44,8 @@ public class BlogSettingService {
         if (setting.getWechatId() != null) existing.setWechatId(setting.getWechatId());
         if (setting.getWelcomeText() != null) existing.setWelcomeText(setting.getWelcomeText());
         if (setting.getTechStack() != null) existing.setTechStack(setting.getTechStack());
+        if (setting.getAboutContent() != null) existing.setAboutContent(setting.getAboutContent());
+        if (setting.getFrontendContent() != null) existing.setFrontendContent(setting.getFrontendContent());
 
         return settingRepository.save(existing);
     }

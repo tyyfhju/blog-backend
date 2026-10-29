@@ -14,7 +14,6 @@ public class DashboardStatsResponse {
     private long tagCount;
     private long commentCount;
     private long messageCount;
-    private long talkCount;
     private long photoCount;
     private List<Article> recentArticles;
     private List<Comment> recentComments;

@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/api/captcha")
 public class CaptchaController {
 
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     @Autowired
     private RedisUtil redisUtil;
 
@@ -29,7 +32,7 @@ public class CaptchaController {
         String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         StringBuilder code = new StringBuilder();
         for (int i = 0; i < 4; i++) {
-            code.append(chars.charAt((int) (Math.random() * chars.length())));
+            code.append(chars.charAt(SECURE_RANDOM.nextInt(chars.length())));
         }
         String captchaCode = code.toString();
         String key = UUID.randomUUID().toString();
@@ -42,12 +45,13 @@ public class CaptchaController {
         g.fillRect(0, 0, width, height);
         g.setColor(Color.LIGHT_GRAY);
         for (int i = 0; i < 5; i++) {
-            g.drawLine((int) (Math.random() * width), (int) (Math.random() * height),
-                    (int) (Math.random() * width), (int) (Math.random() * height));
+            g.drawLine(SECURE_RANDOM.nextInt(width), SECURE_RANDOM.nextInt(height),
+                    SECURE_RANDOM.nextInt(width), SECURE_RANDOM.nextInt(height));
         }
         g.setFont(new Font("Arial", Font.BOLD, 24));
         g.setColor(Color.BLACK);
-        g.drawString(captchaCode, 10, 28);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.drawString(captchaCode, 24, 28);
         g.dispose();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -21,6 +21,7 @@ public class FileProxyController {
         String encoded = URLEncoder.encode(filename, StandardCharsets.UTF_8.name()).replace("+", "%20");
         String key = "blog/" + encoded;
         response.setHeader("Cache-Control", "public, max-age=86400");
+        response.setHeader("X-Content-Type-Options", "nosniff");
 
         // 根据扩展名设置 Content-Type
         String lower = filename.toLowerCase();
@@ -28,11 +29,20 @@ public class FileProxyController {
         else if (lower.endsWith(".gif")) response.setContentType("image/gif");
         else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) response.setContentType("image/jpeg");
         else if (lower.endsWith(".webp")) response.setContentType("image/webp");
-        else if (lower.endsWith(".svg")) response.setContentType("image/svg+xml");
+        else if (lower.endsWith(".svg")) {
+            response.setContentType("image/svg+xml");
+            response.setHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'");
+        }
         else if (lower.endsWith(".ico")) response.setContentType("image/x-icon");
         else response.setContentType("application/octet-stream");
 
-        byte[] bytes = cosUtil.download(key);
+        byte[] bytes;
+        try {
+            bytes = cosUtil.download(key);
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
         response.getOutputStream().write(bytes);
         response.getOutputStream().flush();
     }

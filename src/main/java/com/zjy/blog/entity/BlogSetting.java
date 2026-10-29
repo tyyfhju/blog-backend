@@ -37,6 +37,12 @@ public class BlogSetting {
     @Column(columnDefinition = "TEXT")
     private String techStack;       // 技术栈
 
+    @Column(columnDefinition = "TEXT")
+    private String aboutContent;    // 关于页正文
+
+    @Column(columnDefinition = "TEXT")
+    private String frontendContent; // 前台可见文案覆盖（JSON）
+
     @Column(name = "create_time")
     private LocalDateTime createTime = LocalDateTime.now();
 

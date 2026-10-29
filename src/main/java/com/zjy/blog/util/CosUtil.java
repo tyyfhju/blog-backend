@@ -1,5 +1,7 @@
 package com.zjy.blog.util;
 
+import com.zjy.blog.exception.BusinessException;
+
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
@@ -18,9 +20,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class CosUtil {
+
+    private static final long MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+    private static final List<String> ALLOWED_EXTENSIONS =
+            Arrays.asList(".jpg", ".jpeg", ".png", ".gif", ".webp");
 
     @Value("${cos.secret-id}")
     private String secretId;
@@ -44,21 +52,47 @@ public class CosUtil {
     }
 
     public String upload(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException("上传文件不能为空");
+        }
+        if (file.getSize() > MAX_UPLOAD_SIZE) {
+            throw new BusinessException("图片不能超过10MB");
+        }
         String originalName = file.getOriginalFilename();
-        String ext = originalName.substring(originalName.lastIndexOf("."));
+        int dot = originalName == null ? -1 : originalName.lastIndexOf(".");
+        if (dot < 0) {
+            throw new BusinessException("只支持 jpg、png、gif、webp 图片");
+        }
+        String ext = originalName.substring(dot).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(ext)) {
+            throw new BusinessException("只支持 jpg、png、gif、webp 图片");
+        }
         String rawName = System.currentTimeMillis() + "_" + originalName.replaceAll("[^a-zA-Z0-9.\\-_\\u4e00-\\u9fa5]", "_");
         String safeName = URLEncoder.encode(rawName, StandardCharsets.UTF_8.name()).replace("+", "%20");
         String key = "blog/" + safeName;
 
-        File tempFile = File.createTempFile("cos-", ext);
-        file.transferTo(tempFile);
-
-        COSClient client = getClient();
-        client.putObject(new PutObjectRequest(bucketName, key, tempFile));
-        client.shutdown();
-        tempFile.delete();
-
-        return key;
+        File tempFile;
+        try {
+            tempFile = File.createTempFile("cos-", ext);
+        } catch (IOException e) {
+            throw new BusinessException("文件上传失败，请稍后重试", e);
+        }
+        try {
+            file.transferTo(tempFile);
+            COSClient client = getClient();
+            try {
+                client.putObject(new PutObjectRequest(bucketName, key, tempFile));
+            } finally {
+                client.shutdown();
+            }
+            return key;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException("文件上传失败，请稍后重试", e);
+        } finally {
+            tempFile.delete();
+        }
     }
 
     public byte[] download(String key) throws IOException {

@@ -18,7 +18,7 @@ public class SitemapController {
     @Autowired
     private ArticleRepository articleRepository;
 
-    private static final String BASE_URL = "http://8.152.101.69";
+    private static final String BASE_URL = "https://xn--hlry9isyc4tas57t.com";
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
@@ -35,7 +35,7 @@ public class SitemapController {
         sb.append("  </url>\n");
 
         // 主要页面
-        String[] pages = {"/archive", "/tags", "/category", "/talks", "/photos", "/about", "/search"};
+        String[] pages = {"/articles", "/archive", "/category", "/photos", "/about"};
         for (String p : pages) {
             sb.append("  <url>\n");
             sb.append("    <loc>").append(BASE_URL).append(p).append("</loc>\n");

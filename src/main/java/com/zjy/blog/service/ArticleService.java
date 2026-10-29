@@ -1,5 +1,7 @@
 package com.zjy.blog.service;
 
+import com.zjy.blog.exception.BusinessException;
+
 import com.zjy.blog.dto.ArticleCreateRequest;
 import com.zjy.blog.dto.ArticleUpdateRequest;
 import com.zjy.blog.entity.Article;
@@ -38,12 +40,16 @@ public class ArticleService {
     @Autowired
     private ArticleLikeRepository articleLikeRepository;
     @Autowired
-    private EmailService emailService;
-    @Autowired
     private CosUtil cosUtil;
 
     public Page<Article> getPublished(int page, int size) {
         return getPublished(page, size, null, null);
+    }
+
+    public Page<Article> search(String keyword, int page, int size) {
+        Page<Article> result = articleRepository.searchPublished(1, keyword, PageRequest.of(page, size));
+        result.getContent().forEach(this::enrichArticle);
+        return result;
     }
 
     public Page<Article> getPublished(int page, int size, Long categoryId, Long tagId) {
@@ -106,7 +112,7 @@ public class ArticleService {
     @Transactional
     public Article update(Long id, ArticleUpdateRequest req) {
         Article article = articleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("文章不存在"));
+                .orElseThrow(() -> new BusinessException("文章不存在"));
         if (req.getTitle() != null) article.setTitle(req.getTitle());
         if (req.getContent() != null) article.setContent(req.getContent());
         if (req.getSummary() != null) article.setSummary(req.getSummary());
@@ -122,10 +128,17 @@ public class ArticleService {
         return articleRepository.save(article);
     }
 
+    @Transactional
     public void delete(Long id) {
         Article article = articleRepository.findById(id).orElse(null);
         if (article != null && article.getCoverUrl() != null) {
             cosUtil.deleteByUrl(article.getCoverUrl());
+        }
+        commentRepository.deleteByArticleId(id);
+        articleLikeRepository.deleteByArticleId(id);
+        if (article != null && article.getTags() != null) {
+            article.getTags().clear();
+            articleRepository.save(article);
         }
         articleRepository.deleteById(id);
     }
@@ -139,7 +152,9 @@ public class ArticleService {
     }
 
     public List<Article> getRecommended() {
-        return articleRepository.findTop2ByStatusAndIsRecommendOrderByCreateTimeDesc(1, 1);
+        List<Article> list = articleRepository.findTop2ByStatusAndIsRecommendOrderByCreateTimeDesc(1, 1);
+        list.forEach(this::enrichArticle);
+        return list;
     }
 
     /**
@@ -198,15 +213,4 @@ public class ArticleService {
         return articleLikeRepository.existsByArticleIdAndUserId(articleId, userId);
     }
 
-    /**
-     * 发布文章并通知订阅者
-     */
-    public Article createAndNotify(ArticleCreateRequest req, Long userId) {
-        Article article = create(req, userId);
-        if (article.getStatus() == 1) {
-            String articleUrl = "https://www.gysy.ltd/article/" + article.getId();
-            emailService.sendNewArticleEmail(article.getTitle(), articleUrl);
-        }
-        return article;
-    }
 }

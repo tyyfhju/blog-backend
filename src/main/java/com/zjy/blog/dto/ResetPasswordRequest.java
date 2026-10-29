@@ -3,6 +3,7 @@ package com.zjy.blog.dto;
 import lombok.Data;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Data
 public class ResetPasswordRequest {
@@ -14,5 +15,6 @@ public class ResetPasswordRequest {
     private String code;
 
     @NotBlank(message = "新密码不能为空")
+    @Size(min = 6, max = 64, message = "密码长度需为6-64位")
     private String newPassword;
 }

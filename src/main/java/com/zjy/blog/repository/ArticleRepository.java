@@ -13,6 +13,8 @@ import java.util.Optional;
 public interface ArticleRepository extends JpaRepository<Article, Long> {
     Page<Article> findByStatusOrderByCreateTimeDesc(Integer status, Pageable pageable);
 
+    long countByStatus(Integer status);
+
     Optional<Article> findTopByIdLessThanAndStatusOrderByIdDesc(Long id, Integer status);
     Optional<Article> findTopByIdGreaterThanAndStatusOrderByIdAsc(Long id, Integer status);
 
@@ -29,6 +31,9 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     @Query("SELECT a FROM Article a JOIN a.tags t WHERE t.id = :tagId AND a.status = :status ORDER BY a.createTime DESC")
     Page<Article> findPublishedByTagId(@Param("tagId") Long tagId, @Param("status") Integer status, Pageable pageable);
+
+    @Query("SELECT DISTINCT a FROM Article a JOIN a.tags t WHERE t.id = :tagId")
+    List<Article> findByTagId(@Param("tagId") Long tagId);
 
     @Query("SELECT a FROM Article a WHERE a.status = :status AND " +
             "(LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

@@ -39,7 +39,6 @@ public class UserProfileController {
         if (updateData.getAvatarUrl() != null) user.setAvatarUrl(updateData.getAvatarUrl());
         if (updateData.getWebsite() != null) user.setWebsite(updateData.getWebsite());
         if (updateData.getBio() != null) user.setBio(updateData.getBio());
-        if (updateData.getSubscribe() != null) user.setSubscribe(updateData.getSubscribe());
         user = userService.save(user);
         user.setPassword(null);
         return ResponseEntity.ok(user);

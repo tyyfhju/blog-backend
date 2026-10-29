@@ -52,10 +52,6 @@ app:
   jwt:
     secret: <YOUR_JWT_SECRET>
     expiration-ms: 86400000
-  ai:
-    api-key: <YOUR_AI_API_KEY>
-    api-url: https://api.xiaomimimo.com/v1/chat/completions
-    model: mimo-v2-flash
 
 cos:
   secret-id: <YOUR_COS_SECRET_ID>

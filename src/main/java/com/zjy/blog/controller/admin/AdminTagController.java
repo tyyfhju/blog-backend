@@ -1,8 +1,11 @@
 package com.zjy.blog.controller.admin;
 
+import com.zjy.blog.entity.Article;
 import com.zjy.blog.entity.Tag;
+import com.zjy.blog.repository.ArticleRepository;
 import com.zjy.blog.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +16,9 @@ public class AdminTagController {
 
     @Autowired
     private TagRepository tagRepository;
+
+    @Autowired
+    private ArticleRepository articleRepository;
 
     @GetMapping
     public List<Tag> list() {
@@ -31,7 +37,12 @@ public class AdminTagController {
     }
 
     @DeleteMapping("/{id}")
+    @Transactional
     public void delete(@PathVariable Long id) {
+        for (Article article : articleRepository.findByTagId(id)) {
+            article.getTags().removeIf(tag -> tag.getId().equals(id));
+            articleRepository.save(article);
+        }
         tagRepository.deleteById(id);
     }
 }

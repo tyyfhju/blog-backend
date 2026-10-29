@@ -30,8 +30,6 @@ public class AdminDashboardController {
     @Autowired
     private MessageRepository messageRepository;
     @Autowired
-    private TalkRepository talkRepository;
-    @Autowired
     private PhotoRepository photoRepository;
 
     @GetMapping("/stats")
@@ -43,7 +41,6 @@ public class AdminDashboardController {
         res.setTagCount(tagRepository.count());
         res.setCommentCount(commentRepository.count());
         res.setMessageCount(messageRepository.count());
-        res.setTalkCount(talkRepository.count());
         res.setPhotoCount(photoRepository.count());
 
         PageRequest top5 = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "createTime"));

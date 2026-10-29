@@ -24,12 +24,4 @@ public class UploadController {
         res.put("url", "/api/files/" + key.substring(key.lastIndexOf("/") + 1));
         return ResponseEntity.ok(res);
     }
-
-    @PostMapping("/upload/image")
-    public ResponseEntity<Map<String, String>> uploadPublicImage(@RequestParam("file") MultipartFile file) throws IOException {
-        String key = cosUtil.upload(file);
-        Map<String, String> res = new HashMap<>();
-        res.put("url", "/api/files/" + key.substring(key.lastIndexOf("/") + 1));
-        return ResponseEntity.ok(res);
-    }
 }

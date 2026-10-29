@@ -1,12 +1,10 @@
 package com.zjy.blog.controller;
 
 import com.zjy.blog.entity.Article;
-import com.zjy.blog.repository.ArticleRepository;
 import com.zjy.blog.service.ArticleService;
 import com.zjy.blog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +21,6 @@ public class ArticleController {
     private ArticleService articleService;
 
     @Autowired
-    private ArticleRepository articleRepository;
-
-    @Autowired
     private UserService userService;
 
     @GetMapping
@@ -33,6 +28,8 @@ public class ArticleController {
                               @RequestParam(defaultValue = "10") int size,
                               @RequestParam(required = false) Long categoryId,
                               @RequestParam(required = false) Long tagId) {
+        page = Math.max(0, page);
+        size = Math.max(1, Math.min(size, 50));
         return articleService.getPublished(page, size, categoryId, tagId);
     }
 
@@ -40,15 +37,20 @@ public class ArticleController {
     public Page<Article> search(@RequestParam String q,
                                 @RequestParam(defaultValue = "0") int page,
                                 @RequestParam(defaultValue = "10") int size) {
-        return articleRepository.searchPublished(1, q, PageRequest.of(page, size));
+        page = Math.max(0, page);
+        size = Math.max(1, Math.min(size, 50));
+        return articleService.search(q, page, size);
     }
 
     @GetMapping("/{id}")
-    public Map<String, Object> detail(@PathVariable Long id, Authentication auth) {
+    public ResponseEntity<Map<String, Object>> detail(@PathVariable Long id, Authentication auth) {
         Article article = articleService.getById(id);
+        if (article == null || article.getStatus() == null || article.getStatus() != 1) {
+            return ResponseEntity.notFound().build();
+        }
         // 阅读量 +1
         articleService.incrementViewCount(id);
-        if (article != null && article.getViewCount() != null) {
+        if (article.getViewCount() != null) {
             article.setViewCount(article.getViewCount() + 1);
         }
         Map<String, Object> result = new HashMap<>();
@@ -65,7 +67,7 @@ public class ArticleController {
             } catch (Exception ignored) {}
         }
         result.put("liked", liked);
-        return result;
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}/previous")

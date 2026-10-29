@@ -35,12 +35,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                 .antMatchers("/api/auth/**", "/api/captcha/**", "/api/articles/**",
-                        "/api/categories/**", "/api/tags/**", "/api/friend-links/**",
-                        "/api/messages/**", "/api/talks/**", "/api/subscribe/**",
+                        "/api/categories/**",
+                        "/api/messages/**",
                         "/api/photos/**", "/api/photo-albums/**",
                         "/api/blog-setting/**", "/api/home/**",
-                        "/api/upload/**", "/api/files/**",
-                        "/api/ai/**").permitAll()
+                        "/api/files/**", "/sitemap.xml").permitAll()
                 .antMatchers("/api/private/**").hasRole("ADMIN")
                 .antMatchers("/api/user/**").authenticated()
                 .anyRequest().authenticated()
@@ -56,8 +55,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 "https://*.xn--hlry9isyc4tas57t.com",
                 "http://xn--hlry9isyc4tas57t.com",
                 "http://*.xn--hlry9isyc4tas57t.com",
-                "http://8.152.101.69",
-                "http://localhost:8081"
+                "http://localhost:8081",
+                "http://localhost:8082",
+                "http://localhost:8083",
+                "http://127.0.0.1:8081",
+                "http://127.0.0.1:8082",
+                "http://127.0.0.1:8083"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));

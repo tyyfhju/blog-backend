@@ -1,5 +1,6 @@
 package com.zjy.blog.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -18,14 +19,15 @@ public class User {
     @Column(nullable = false, unique = true, length = 128)
     private String email;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false, length = 256)
     private String password;
 
     @Column(nullable = false)
-    private Integer status = 1;
+    private Integer status;
 
     @Column(length = 32, nullable = false)
-    private String role = "user";
+    private String role;
 
     @Column(length = 64)
     private String nickname;
@@ -39,9 +41,13 @@ public class User {
     @Column(length = 512)
     private String bio;
 
-    @Column
-    private Integer subscribe = 0;
-
     @Column(name = "create_time", nullable = false)
-    private LocalDateTime createTime = LocalDateTime.now();
+    private LocalDateTime createTime;
+
+    @PrePersist
+    public void prePersist() {
+        if (status == null) status = 1;
+        if (role == null) role = "user";
+        if (createTime == null) createTime = LocalDateTime.now();
+    }
 }

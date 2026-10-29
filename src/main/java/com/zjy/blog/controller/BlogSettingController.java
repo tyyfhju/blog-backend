@@ -33,7 +33,7 @@ public class BlogSettingController {
     @GetMapping("/api/home/counts")
     public Map<String, Long> getCounts() {
         Map<String, Long> counts = new HashMap<>();
-        counts.put("articles", articleRepository.count());
+        counts.put("articles", articleRepository.countByStatus(1));
         counts.put("categories", categoryRepository.count());
         counts.put("tags", tagRepository.count());
         return counts;
