@@ -23,13 +23,14 @@
 
 前端是 Vue 2.6 + Vue Router 3 + Vuex 3。后台用了 Element UI，前台样式和动画是自己写的。
 
-部署是 Ubuntu 22.04 + Nginx + systemd。jar 放 `/opt/blog`，前端 `dist` 放 `/var/www/blog/dist`。
+部署是 Ubuntu 22.04 + Nginx + systemd。线上前面还挂了腾讯 EdgeOne，证书是源站和 EdgeOne 两套。jar 放 `/opt/blog`，前端 `dist` 放 `/var/www/blog/dist`。
 
 ## 整体怎么跑
 
 ```mermaid
 flowchart LR
-    Browser[浏览器] --> Nginx[Nginx :80 / :443]
+    Browser[浏览器] --> Edge[腾讯 EdgeOne<br/>HTTPS 边缘证书]
+    Edge --> Nginx[Nginx :443<br/>Let's Encrypt 证书]
     Nginx -->|"/"| Static[Vue dist<br/>/var/www/blog/dist]
     Nginx -->|"/api/"| App[Spring Boot :8080]
     App --> MySQL[(MySQL)]
@@ -38,9 +39,56 @@ flowchart LR
     App --> SMTP[(QQ SMTP)]
 ```
 
-浏览器先到 Nginx。Nginx 把 `/` 交给 Vue 的 `dist`，把 `/api/` 转给本机 `127.0.0.1:8080` 的 Spring Boot。后端再连 MySQL、Redis、COS 和邮箱。
+浏览器先到 EdgeOne，EdgeOne 再回源到 Nginx 的 443。Nginx 把 `/` 交给 Vue 的 `dist`，把 `/api/` 转给本机 `127.0.0.1:8080` 的 Spring Boot。后端再连 MySQL、Redis、COS 和邮箱。
 
 后端只监听 `127.0.0.1`，外面只开 Nginx 的 80 和 443。
+
+## EdgeOne 和证书续期
+
+线上是两套证书，别搞混：
+
+- 源站：certbot 管 `/etc/letsencrypt/live/<域名>/`，Nginx 直接用它。
+- EdgeOne：它读不到源站那张证书，需要单独一张边缘证书。
+
+所以 certbot 续期成功后，还要把新证书推到 EdgeOne。我这边是这么做的：
+
+1. certbot 续期成功，自动执行 `/etc/letsencrypt/renewal-hooks/deploy/sync-to-edgeone.sh`
+2. hook 调 `/usr/local/bin/sync-edgeone-cert.py`
+3. 脚本把 `fullchain.pem` 和 `privkey.pem` 上传到腾讯云 SSL，拿到 `CertificateId`
+4. 再调 EdgeOne 的 `ModifyHostsCertificate`，把证书绑到根域名和 `www`
+
+手动测一遍：
+
+```bash
+sudo /etc/letsencrypt/renewal-hooks/deploy/sync-to-edgeone.sh
+sudo tail -n 30 /var/log/cert-sync.log
+```
+
+看源站和 EdgeOne 实际用的证书：
+
+```bash
+for h in <域名> www.<域名>; do
+  echo "== $h =="
+  echo | openssl s_client -servername "$h" -connect "$h":443 2>/dev/null \
+    | openssl x509 -noout -subject -issuer -dates
+done
+```
+
+再看源站自己的：
+
+```bash
+echo | openssl s_client -servername <域名> -connect 127.0.0.1:443 2>/dev/null \
+  | openssl x509 -noout -subject -issuer -dates
+```
+
+三个都显示同一个到期时间，就说明源站和 EdgeOne 都是新证书了。
+
+注意几点：
+
+- EdgeOne 的证书不会跟着源站自动续，必须有这个 hook。
+- 脚本失败时 certbot 可能还是显示续期成功，所以要去 `/var/log/cert-sync.log` 看有没有报错。
+- 腾讯云 API 密钥放服务器上的 root 600 环境文件里，别写死在脚本，也别提交到仓库。
+- 源站最好只允许 EdgeOne 回源，不然别人拿到源站 IP 可以绕过 EdgeOne。
 
 ## 目录大概是这样
 
@@ -242,6 +290,8 @@ sudo systemctl reload nginx
 sudo certbot --nginx -d <域名> -d www.<域名> \
   --redirect --agree-tos -m <邮箱> --no-eff-email
 ```
+
+源站证书续期后，会自动跑上面说的 EdgeOne 同步 hook。第一次部署建议先手动执行一遍，确认 EdgeOne 那边也拿到证书了。
 
 ### 7. 防火墙
 
