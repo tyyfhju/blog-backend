@@ -1,56 +1,31 @@
 # 个人博客 · 后端
 
-一个前后端分离的个人博客系统，包含前台展示、后台管理、登录注册、评论留言、相册、邮件订阅和文章发布通知。
+这是我自己的博客后端，前后端分开写的。
 
-- 线上地址：<https://xn--hlry9isyc4tas57t.com>
-- 前端仓库：[tyyfhju/blog-frontend](https://github.com/tyyfhju/blog-frontend)
-- 后端仓库：[tyyfhju/blog-backend](https://github.com/tyyfhju/blog-backend)
+线上地址：<https://xn--hlry9isyc4tas57t.com>
 
-## 功能
+前端在另一个仓库：[tyyfhju/blog-frontend](https://github.com/tyyfhju/blog-frontend)
 
-**前台**
+## 这个博客有什么
 
 - 首页、文章列表、文章详情、归档、分类、相册、关于
-- 全站搜索、文章点赞、上下篇、相关推荐
-- 评论和关于页留言：必须登录，作者显示登录邮箱
+- 搜索、点赞、上下篇、相关推荐
+- 评论和关于页留言都得登录才能发，作者显示登录邮箱
 - 注册、登录、邮箱验证码、找回密码
-- 同一账号只允许一台设备登录，后登录会挤掉前一台
-- 邮件订阅：发布新文章时发送 HTML 邮件，邮件内可一键退订
-- 深浅主题、移动端适配、Sitemap
+- 一个账号只能一台设备登录，后登录的会把前一台挤下线
+- 邮件订阅，发新文章会通知订阅的人，邮件里能直接退订
+- 后台能管文章、分类、标签、用户、评论、留言、相册和站点设置
+- 文章和相册图片传到腾讯云 COS，不占服务器硬盘
 
-**后台**
+## 用的什么
 
-- 仪表盘、文章、分类、标签、用户、评论、留言、相册、博客设置
-- 文章草稿/发布、封面上传、Markdown 编辑
-- 头像、首页大图、站点文案、社交链接配置
-- 评论/留言管理、用户禁用、相册管理
+后端是 Java 8 + Spring Boot 2.6.13，JPA 操作 MySQL，Redis 存验证码、登录失败次数和单设备登录的会话 ID，Spring Security + JWT 做登录，邮件走 QQ 邮箱 SMTP，图片走腾讯云 COS。
 
-**后端能力**
+前端是 Vue 2.6 + Vue Router 3 + Vuex 3。后台用了 Element UI，前台样式和动画是自己写的。
 
-- JWT 登录、单设备会话、登录失败限流
-- 邮箱验证码、图形验证码、密码重置
-- COS 图片上传与文件代理
-- 敏感词过滤、分页上限、级联删除
-- 最后一个管理员保护、统一异常处理
-- 文章发布邮件通知、HTML 邮件模板、一键退订
+部署是 Ubuntu 22.04 + Nginx + systemd。jar 放 `/opt/blog`，前端 `dist` 放 `/var/www/blog/dist`。
 
-## 技术栈
-
-| 层 | 技术 |
-| --- | --- |
-| 语言 | Java 8 |
-| 框架 | Spring Boot 2.6.13 |
-| 数据访问 | Spring Data JPA / Hibernate |
-| 数据库 | MySQL 5.7 / 8.0 |
-| 缓存 | Redis |
-| 安全 | Spring Security + JWT (jjwt 0.11.5) |
-| 邮件 | Spring Mail + QQ SMTP |
-| 对象存储 | 腾讯云 COS |
-| 构建 | Maven |
-| 部署 | Ubuntu 22.04 + Nginx + systemd |
-| 前端 | Vue 2.6 + Vue Router 3 + Vuex 3 + Element UI |
-
-## 架构
+## 整体怎么跑
 
 ```mermaid
 flowchart LR
@@ -63,13 +38,11 @@ flowchart LR
     App --> SMTP[(QQ SMTP)]
 ```
 
-- Nginx 负责静态页面、HTTPS 和 `/api/` 反向代理。
-- Spring Boot 只监听 `127.0.0.1:8080`，不直接暴露到公网。
-- MySQL 存业务数据，Redis 存验证码、登录失败计数和单设备登录的会话 ID。
-- 图片上传到腾讯云 COS，通过后端文件代理访问。
-- 邮件用于注册验证码、找回密码和新文章通知。
+浏览器先到 Nginx。Nginx 把 `/` 交给 Vue 的 `dist`，把 `/api/` 转给本机 `127.0.0.1:8080` 的 Spring Boot。后端再连 MySQL、Redis、COS 和邮箱。
 
-## 目录结构
+后端只监听 `127.0.0.1`，外面只开 Nginx 的 80 和 443。
+
+## 目录大概是这样
 
 ```text
 backend/
@@ -77,93 +50,70 @@ backend/
 │   ├── controller/          前台接口
 │   ├── controller/admin/    后台接口
 │   ├── service/             业务逻辑
-│   ├── repository/          JPA Repository
+│   ├── repository/          JPA
 │   ├── entity/              实体类
 │   ├── security/            JWT、单设备会话
 │   ├── config/              Security、异常处理、CORS
 │   ├── dto/                 请求体
-│   └── util/                Redis、COS 等工具
+│   └── util/                Redis、COS 这些
 ├── src/main/resources/
-│   ├── application.example.yml   配置模板
+│   ├── application.example.yml
 │   └── static/
-├── DEPLOY.md                详细部署教程
-├── add_columns.sql          历史补列脚本
+├── DEPLOY.md                详细部署步骤
+├── add_columns.sql
 └── pom.xml
 ```
 
-## 数据表
+数据库主要就这些表：`user`、`article`、`category`、`tag`、`article_tag`、`comment`、`message`、`photo`、`photo_album`、`article_like`、`blog_setting`。
 
-主要表：
+第一次启动时 JPA 会自动建表、补字段。已经有数据的环境，升级前先备份，别直接上。
 
-| 表 | 说明 |
-| --- | --- |
-| `user` | 用户、管理员、订阅开关 |
-| `article` | 文章 |
-| `category` / `tag` / `article_tag` | 分类、标签、文章标签关联 |
-| `comment` | 文章评论 |
-| `message` | 关于页留言 |
-| `photo` / `photo_album` | 相册和照片 |
-| `article_like` | 文章点赞 |
-| `blog_setting` | 站点设置和前台文案 |
+## 本地怎么启动
 
-首次启动时 JPA 会根据实体自动建表或补字段。已有数据的环境，建议先用 Navicat 或 `mysqldump` 备份再升级。
+需要 JDK 8、Maven、MySQL、Redis。前端另外要 Node 14+。
 
-## 本地开发
-
-### 环境要求
-
-- JDK 8
-- Maven 3.5+
-- MySQL 5.7 / 8.0
-- Redis
-- Node.js 14+（只跑前端时需要）
-
-### 启动后端
+先把配置复制一份：
 
 ```bash
-cd backend
 cp src/main/resources/application.example.yml src/main/resources/application.yml
 ```
 
-编辑 `application.yml`，填好数据库、Redis、邮箱、COS 和 JWT 配置，然后：
+然后把数据库、Redis、邮箱、COS、JWT 这些填成自己的。真实的 `application.yml` 不会提交，仓库里只有模板。
+
+启动后端：
 
 ```bash
 mvn spring-boot:run
 ```
 
-默认地址：`http://localhost:8080`。
+默认是 `http://localhost:8080`。
 
-### 启动前端
+前端在另一个仓库：
 
 ```bash
-cd frontend
 npm install
 npm run serve
 ```
 
-默认地址：`http://localhost:8081`，`/api` 会代理到 `http://localhost:8080`。
+默认 `http://localhost:8081`，`/api` 会代理到 8080。
 
-## 配置说明
+## 配置
 
-`application.yml` 已被 `.gitignore` 排除，仓库里只提交 `application.example.yml`。
+主要就这几项：
 
-| 配置 | 说明 |
-| --- | --- |
-| `spring.datasource.*` | MySQL 地址、库名、账号密码 |
-| `spring.redis.*` | Redis 地址和密码 |
-| `spring.mail.*` | SMTP 服务器、发件邮箱、授权码 |
-| `cos.*` | 腾讯云 COS 的 SecretId、SecretKey、地域、Bucket |
-| `app.jwt.secret` | JWT 签名密钥，必须使用足够长的随机值 |
-| `app.jwt.expiration-ms` | 登录 token 有效期 |
-| `app.site-url` | 邮件里的站点地址，默认正式域名 |
+- `spring.datasource.*`：MySQL 地址、库名、账号密码
+- `spring.redis.*`：Redis 地址和密码
+- `spring.mail.*`：发验证码和通知邮件的邮箱、授权码
+- `cos.*`：腾讯云 COS 的地域、Bucket、SecretId、SecretKey
+- `app.jwt.secret`：JWT 签名密钥，别用示例值
+- `app.jwt.expiration-ms`：登录 token 有效期
+- `app.site-url`：邮件里链接用的站点地址，默认就是正式域名
 
-> 不要把真实的 `application.yml`、数据库密码、邮箱授权码、COS 密钥提交到仓库。
+## 服务器怎么部署
 
-## 部署（Ubuntu 22.04）
+我一般按这个顺序来，详细版在 [DEPLOY.md](DEPLOY.md)。
 
-完整步骤见 [DEPLOY.md](DEPLOY.md)，下面是主流程。
-
-### 1. 本地构建
+### 1. 本地打包
 
 ```bash
 mvn clean package -DskipTests
@@ -175,16 +125,7 @@ mvn clean package -DskipTests
 target/blog-0.0.1-SNAPSHOT.jar
 ```
 
-前端：
-
-```bash
-cd frontend
-npm run build
-```
-
-产物：`dist/`。
-
-### 2. 服务器目录
+### 2. 放后端
 
 ```bash
 sudo mkdir -p /opt/blog
@@ -192,12 +133,14 @@ sudo useradd --system --home /opt/blog --shell /usr/sbin/nologin blog 2>/dev/nul
 sudo chown -R blog:blog /opt/blog
 ```
 
-上传：
+上传两个文件：
 
 ```text
 本地 target/blog-0.0.1-SNAPSHOT.jar  ->  /opt/blog/blog.jar
 本地 src/main/resources/application.yml  ->  /opt/blog/application.yml
 ```
+
+然后改权限：
 
 ```bash
 sudo chown blog:blog /opt/blog/blog.jar /opt/blog/application.yml
@@ -234,21 +177,21 @@ sudo systemctl enable --now blog
 sudo systemctl status blog --no-pager
 ```
 
-看日志：
+出问题先看日志：
 
 ```bash
 sudo journalctl -u blog -n 100 --no-pager
 ```
 
-### 4. 前端
+### 4. 放前端
 
-把本地 `dist` 里面的内容上传到：
+把本地 `dist` 里面的内容传到：
 
 ```text
 /var/www/blog/dist/
 ```
 
-注意不要变成 `/var/www/blog/dist/dist/index.html`。然后：
+别传成 `/var/www/blog/dist/dist`。然后改权限：
 
 ```bash
 sudo chown -R www-data:www-data /var/www/blog
@@ -302,7 +245,7 @@ sudo certbot --nginx -d <域名> -d www.<域名> \
 
 ### 7. 防火墙
 
-只放行 22、80、443。`8080`、`3306`、`6379` 不要对公网开放。
+只放 22、80、443，`8080`、`3306`、`6379` 不要对公网开。
 
 ```bash
 sudo ufw allow OpenSSH
@@ -310,7 +253,7 @@ sudo ufw allow 'Nginx Full'
 sudo ufw enable
 ```
 
-云服务器安全组也要同步放行 22、80、443。
+云服务器安全组也要放行 22、80、443。
 
 ### 8. 更新版本
 
@@ -327,37 +270,37 @@ sudo systemctl status blog --no-pager
 前端：
 
 ```bash
-# 用新的 dist 内容覆盖 /var/www/blog/dist
+# 新的 dist 内容覆盖 /var/www/blog/dist
 sudo chown -R www-data:www-data /var/www/blog
 ```
 
-静态文件不需要重启 Nginx，必要时执行：
+静态文件换完一般不用重启 Nginx，真要重启就：
 
 ```bash
 sudo systemctl reload nginx
 ```
 
-## 上线检查
+## 上线前看一眼
 
-- 首页、文章列表、文章详情、归档、分类、相册、关于页正常
+- 首页、文章列表、文章详情、归档、分类、相册、关于都能打开
 - 登录、注册、找回密码正常
 - 评论和留言必须登录，作者显示登录邮箱
-- 后台上传图片、发布文章正常
-- 发布新文章后订阅邮件能收到
-- 邮件里的「一键退订」能正常退订
+- 后台能上传图片、发文章
+- 发一篇新文章，订阅的人能收到邮件
+- 邮件里的「一键退订」能点
 - `https://<域名>/sitemap.xml` 能打开
 - `sudo journalctl -u blog -n 100 --no-pager` 没有 ERROR
 - 手机宽度下页面不横向滚动
 
-## 安全说明
+## 几个踩过的坑
 
-- `application.yml` 不提交，仓库只保留占位模板。
-- JWT 密钥使用随机长字符串，不使用示例值。
-- 数据库、Redis、COS、邮箱授权码只放在服务器配置里。
-- 后端绑定 `127.0.0.1`，公网只开放 Nginx 的 80/443。
-- 定期备份 MySQL；升级前先备份数据库和旧 jar。
-- 公开仓库不要提交文章数据、用户数据、服务器 IP 和任何密钥。
+- `dist` 别传成 `/var/www/blog/dist/dist`，多一层就是 404。
+- 覆盖 jar 后记得 `chown blog:blog`，不然服务起不来。
+- 别把 `application.yml` 提交上去，里面有数据库密码、邮箱授权码和 COS 密钥。
+- 后端只监听 `127.0.0.1`，3306 和 6379 别对公网开。
+- 升级前先备份数据库和旧 jar，出问题能退回去。
+- 只换前端时后端不用动；只换后端时前端静态文件也不用动。
 
 ## 说明
 
-这个仓库主要用于个人博客的开发和部署参考，目前没有附带 LICENSE 文件。
+这个仓库主要是给自己博客用的，目前没有 LICENSE 文件。
