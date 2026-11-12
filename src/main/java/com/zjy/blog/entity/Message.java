@@ -12,7 +12,7 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 64)
+    @Column(nullable = false, length = 128)
     private String nickname;
 
     @Column(nullable = false, columnDefinition = "TEXT")

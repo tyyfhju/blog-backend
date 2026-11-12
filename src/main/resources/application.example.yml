@@ -49,6 +49,7 @@ spring:
       max-request-size: 50MB
 
 app:
+  site-url: https://xn--hlry9isyc4tas57t.com
   jwt:
     secret: <YOUR_JWT_SECRET>
     expiration-ms: 86400000

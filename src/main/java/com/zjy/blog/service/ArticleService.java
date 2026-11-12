@@ -41,6 +41,8 @@ public class ArticleService {
     private ArticleLikeRepository articleLikeRepository;
     @Autowired
     private CosUtil cosUtil;
+    @Autowired
+    private ArticleSubscriptionService articleSubscriptionService;
 
     public Page<Article> getPublished(int page, int size) {
         return getPublished(page, size, null, null);
@@ -106,13 +108,18 @@ public class ArticleService {
             Set<Tag> tags = new HashSet<>(tagRepository.findAllById(req.getTagIds()));
             article.setTags(tags);
         }
-        return articleRepository.save(article);
+        Article saved = articleRepository.save(article);
+        if (Integer.valueOf(1).equals(saved.getStatus())) {
+            articleSubscriptionService.notifyPublished(saved);
+        }
+        return saved;
     }
 
     @Transactional
     public Article update(Long id, ArticleUpdateRequest req) {
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("文章不存在"));
+        boolean wasPublished = Integer.valueOf(1).equals(article.getStatus());
         if (req.getTitle() != null) article.setTitle(req.getTitle());
         if (req.getContent() != null) article.setContent(req.getContent());
         if (req.getSummary() != null) article.setSummary(req.getSummary());
@@ -125,7 +132,11 @@ public class ArticleService {
             Set<Tag> tags = new HashSet<>(tagRepository.findAllById(req.getTagIds()));
             article.setTags(tags);
         }
-        return articleRepository.save(article);
+        Article saved = articleRepository.save(article);
+        if (!wasPublished && Integer.valueOf(1).equals(saved.getStatus())) {
+            articleSubscriptionService.notifyPublished(saved);
+        }
+        return saved;
     }
 
     @Transactional

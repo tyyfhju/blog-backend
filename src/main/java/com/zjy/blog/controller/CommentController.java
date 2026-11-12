@@ -34,6 +34,9 @@ public class CommentController {
 
     @PostMapping
     public ResponseEntity<Comment> create(@RequestBody Comment comment, Authentication auth) {
+        if (auth == null || auth.getPrincipal() == null) {
+            throw new BusinessException("请先登录后再评论");
+        }
         if (comment.getArticleId() == null || !articleRepository.existsById(comment.getArticleId())) {
             throw new BusinessException("文章不存在");
         }
@@ -46,6 +49,9 @@ public class CommentController {
         }
         String email = (String) auth.getPrincipal();
         Long userId = userService.getUserIdByEmail(email);
+        // 忽略客户端传来的 id 和关联对象，避免覆盖已有评论
+        comment.setId(null);
+        comment.setUser(null);
         comment.setUserId(userId);
         comment.setCreateTime(LocalDateTime.now());
         // 敏感词过滤

@@ -29,17 +29,14 @@ public class User {
     @Column(length = 32, nullable = false)
     private String role;
 
-    @Column(length = 64)
+    @Column(length = 128)
     private String nickname;
 
     @Column(name = "avatar_url", length = 512)
     private String avatarUrl;
 
-    @Column(length = 255)
-    private String website;
-
-    @Column(length = 512)
-    private String bio;
+    @Column(name = "subscribe")
+    private Boolean subscribe = false;
 
     @Column(name = "create_time", nullable = false)
     private LocalDateTime createTime;

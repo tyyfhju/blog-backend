@@ -7,6 +7,7 @@ import com.zjy.blog.dto.RegisterRequest;
 import com.zjy.blog.dto.ResetPasswordRequest;
 import com.zjy.blog.entity.User;
 import com.zjy.blog.repository.UserRepository;
+import com.zjy.blog.security.AuthSession;
 import com.zjy.blog.security.JwtTokenProvider;
 import com.zjy.blog.util.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -48,6 +50,17 @@ public class AuthService {
 
     private String nextCode() {
         return String.format("%06d", SECURE_RANDOM.nextInt(1000000));
+    }
+
+    /**
+     * 每次登录生成新的 jti，并把它写进 Redis。
+     * 后一次登录会覆盖前一次，旧 token 在过滤器里比对失败后立即失效。
+     */
+    private String issueToken(User user) {
+        String sessionId = UUID.randomUUID().toString();
+        redisUtil.set(AuthSession.key(user.getEmail()), sessionId,
+                jwtTokenProvider.getExpirationMs(), TimeUnit.MILLISECONDS);
+        return jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), sessionId);
     }
 
     public void sendEmailCode(String email) {
@@ -97,13 +110,13 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole("user");
-        user.setNickname("用户" + System.currentTimeMillis() % 10000000000L);
+        user.setNickname(request.getEmail());
         userRepository.save(user);
 
         redisUtil.delete("captcha:" + request.getCaptchaKey());
         redisUtil.delete("emailCode:" + request.getEmail());
 
-        return jwtTokenProvider.generateToken(user.getEmail(), user.getRole());
+        return issueToken(user);
     }
 
     public String login(LoginRequest request) {
@@ -130,7 +143,7 @@ public class AuthService {
             throw new BusinessException("账号已被禁用");
         }
         redisUtil.delete(failKey);
-        return jwtTokenProvider.generateToken(user.getEmail(), user.getRole());
+        return issueToken(user);
     }
 
     public void sendResetPasswordCode(String email) {
@@ -187,6 +200,8 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
+        // 改密码后让所有旧 token 失效
+        redisUtil.delete(AuthSession.key(request.getEmail()));
         redisUtil.delete("resetCode:" + request.getEmail());
         redisUtil.delete(attemptKey);
     }

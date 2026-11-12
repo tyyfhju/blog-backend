@@ -33,12 +33,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/comments/**", "/api/messages/**").permitAll()
                 .antMatchers("/api/auth/**", "/api/captcha/**", "/api/articles/**",
                         "/api/categories/**",
-                        "/api/messages/**",
                         "/api/photos/**", "/api/photo-albums/**",
                         "/api/blog-setting/**", "/api/home/**",
+                        "/api/subscriptions/**",
                         "/api/files/**", "/sitemap.xml").permitAll()
                 .antMatchers("/api/private/**").hasRole("ADMIN")
                 .antMatchers("/api/user/**").authenticated()
