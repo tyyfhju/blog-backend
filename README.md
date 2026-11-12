@@ -6,6 +6,18 @@
 
 前端在另一个仓库：[tyyfhju/blog-frontend](https://github.com/tyyfhju/blog-frontend)
 
+## 页面预览
+
+| 首页 | 文章页 |
+| --- | --- |
+| [![首页](docs/screenshots/home-desktop.jpg)](https://xn--hlry9isyc4tas57t.com/) | [![文章页](docs/screenshots/article-desktop.jpg)](https://xn--hlry9isyc4tas57t.com/article/17) |
+
+<p align="center">
+  <img src="docs/screenshots/home-mobile.jpg" width="320" alt="手机端首页">
+</p>
+
+截图就是线上站点的实际效果。
+
 ## 这个博客有什么
 
 - 首页、文章列表、文章详情、归档、分类、相册、关于
