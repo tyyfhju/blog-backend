@@ -8,15 +8,40 @@
 
 ## 页面预览
 
-| 首页 | 文章页 |
-| --- | --- |
-| [![首页](docs/screenshots/home-desktop.jpg)](https://xn--hlry9isyc4tas57t.com/) | [![文章页](docs/screenshots/article-desktop.jpg)](https://xn--hlry9isyc4tas57t.com/article/17) |
+前台在另一个仓库，这里放几张线上实际效果，主要看接口和数据跑通的样子。
 
 <p align="center">
-  <img src="docs/screenshots/home-mobile.jpg" width="320" alt="手机端首页">
+  <a href="https://xn--hlry9isyc4tas57t.com/">
+    <img src="docs/screenshots/home-desktop.jpg" alt="首页" width="100%">
+  </a>
+  <br>
+  <sub>首页：流丝动画、深浅主题、首屏排版</sub>
 </p>
 
-截图就是线上站点的实际效果。
+| 文章列表 | 文章正文 |
+| --- | --- |
+| [![文章列表](docs/screenshots/articles-desktop.jpg)](https://xn--hlry9isyc4tas57t.com/articles) | [![文章正文](docs/screenshots/article-desktop.jpg)](https://xn--hlry9isyc4tas57t.com/article/17) |
+| 分类、搜索、缩略图、时间索引 | Markdown 正文、代码高亮和复制按钮 |
+
+<p align="center">
+  <img src="docs/screenshots/admin-dashboard.jpg" alt="后台仪表盘" width="100%">
+  <br>
+  <sub>后台：仪表盘、文章管理、分类标签、相册和站点设置</sub>
+</p>
+
+### 手机端
+
+<p align="center">
+  <a href="https://xn--hlry9isyc4tas57t.com/">
+    <img src="docs/screenshots/home-mobile.jpg" width="240" alt="手机端首页">
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://xn--hlry9isyc4tas57t.com/articles">
+    <img src="docs/screenshots/articles-mobile.jpg" width="240" alt="手机端文章列表">
+  </a>
+</p>
+
+截图来自线上站点，桌面端宽度 1440px，手机端 390×844。
 
 ## 这个博客有什么
 
@@ -25,7 +50,6 @@
 - 评论和关于页留言都得登录才能发，作者显示登录邮箱
 - 注册、登录、邮箱验证码、找回密码
 - 一个账号只能一台设备登录，后登录的会把前一台挤下线
-- 邮件订阅，发新文章会通知订阅的人，邮件里能直接退订
 - 后台能管文章、分类、标签、用户、评论、留言、相册和站点设置
 - 文章和相册图片传到腾讯云 COS，不占服务器硬盘
 
