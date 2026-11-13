@@ -18,10 +18,21 @@
   <sub>首页：流丝动画、深浅主题、首屏排版</sub>
 </p>
 
-| 文章列表 | 文章正文 |
-| --- | --- |
-| [![文章列表](docs/screenshots/articles-desktop.jpg)](https://xn--hlry9isyc4tas57t.com/articles) | [![文章正文](docs/screenshots/article-desktop.jpg)](https://xn--hlry9isyc4tas57t.com/article/17) |
-| 分类、搜索、缩略图、时间索引 | Markdown 正文、代码高亮和复制按钮 |
+<p align="center">
+  <a href="https://xn--hlry9isyc4tas57t.com/articles">
+    <img src="docs/screenshots/articles-desktop.jpg" alt="文章列表" width="100%">
+  </a>
+  <br>
+  <sub>文章列表：分类、搜索、缩略图、时间索引</sub>
+</p>
+
+<p align="center">
+  <a href="https://xn--hlry9isyc4tas57t.com/article/17">
+    <img src="docs/screenshots/article-desktop.jpg" alt="文章正文" width="100%">
+  </a>
+  <br>
+  <sub>文章正文：Markdown 排版、代码高亮和复制按钮</sub>
+</p>
 
 <p align="center">
   <img src="docs/screenshots/admin-dashboard.jpg" alt="后台仪表盘" width="100%">
